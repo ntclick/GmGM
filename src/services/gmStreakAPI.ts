@@ -1,3 +1,5 @@
+
+
 import { GMStreakData } from '../types/gmStreak';
 
 // GM Streak API Service with Onchain Integration
@@ -41,7 +43,7 @@ export class GMStreakAPI {
   }
 
   // Get onchain GM events for a user
-  async getOnchainGMData(userAddress: string): Promise<any> {
+  async getOnchainGMData(_userAddress: string): Promise<any> {
     try {
       // Try different event signatures
       const eventSignatures = [
@@ -175,15 +177,16 @@ export class GMStreakAPI {
       const testUrl = `https://api-sepolia.etherscan.io/api?module=proxy&action=eth_blockNumber&apikey=${this.etherscanApiKey}`;
       
       const testResponse = await fetch(testUrl);
-      const testData = await testResponse.json();
+      await testResponse.json();
       
       // Now test contract logs
       const url = `https://api-sepolia.etherscan.io/api?module=logs&action=getLogs&address=${this.contractAddress}&apikey=${this.etherscanApiKey}`;
       
       const response = await fetch(url);
-      const data = await response.json();
+      await response.json();
       
-      if (data.status === '1') {
+      const responseData = await response.json();
+      if (responseData.status === '1') {
         // Contract logs available
       } else {
         // API Error
@@ -201,15 +204,16 @@ export class GMStreakAPI {
       const testUrl = `https://api-sepolia.etherscan.io/api?module=proxy&action=eth_blockNumber&apikey=${testKey}`;
       
       const testResponse = await fetch(testUrl);
-      const testData = await testResponse.json();
+      await testResponse.json();
       
       // Test contract logs with hardcoded key
       const contractUrl = `https://api-sepolia.etherscan.io/api?module=logs&action=getLogs&address=${this.contractAddress}&apikey=${testKey}`;
       
       const contractResponse = await fetch(contractUrl);
-      const contractData = await contractResponse.json();
+      await contractResponse.json();
       
-      if (contractData.status === '1') {
+      const contractResponseData = await contractResponse.json();
+      if (contractResponseData.status === '1') {
         // Contract has logs with hardcoded key
       } else {
         // API Error with hardcoded key
@@ -417,14 +421,4 @@ export class GMStreakAPI {
 }
 
 // GM Streak Data Interface
-export interface GMStreakData {
-  currentStreak: number;
-  bestStreak: number;
-  totalGMs: number;
-  todayGMs: number;
-  lastGMDay: string;
-  lastGMTime: number;
-  lastCategory: string;
-  lastSync: number;
-  onchainEvents: number;
-} 
+ 

@@ -5,7 +5,7 @@ let fheInstance: any = null;
 
 // Load SDK from bundled version with timeout
 const loadZamaSDK = async () => {
-  return new Promise((resolve, reject) => {
+  return new Promise<boolean>((resolve, reject) => {
     // Check if SDK is already loaded
     if (typeof window !== 'undefined' && (window as any).fhevm) {
       resolve(true);
@@ -56,7 +56,6 @@ const loadZamaSDK = async () => {
 
 export async function initializeFheInstance() {
   try {
-    
     // Check if we're in a browser environment
     if (typeof window === 'undefined') {
       return null;
@@ -80,30 +79,30 @@ export async function initializeFheInstance() {
       throw new Error('SDK not found in window object');
     }
     
-           // Use bundled version approach if available
-       if ((window as any).fhevm) {
-         await (window as any).fhevm.initSDK(); // load wasm needed
-         const config = { 
-           network: window.ethereum,
-           relayerUrl: import.meta.env.VITE_RELAYER_URL || 'https://relayer.testnet.zama.cloud'
-         };
-         fheInstance = await (window as any).fhevm.createInstance(config);
-       } else {
-         // Fallback to CDN approach
-         const { initSDK, createInstance, SepoliaConfig } = sdk;
-         
-         await initSDK(); // Loads WASM
-                   const config = {
-             ...SepoliaConfig,
-             network: window.ethereum,
-             relayerUrl: import.meta.env.VITE_RELAYER_URL || 'https://relayer.testnet.zama.cloud',
-                           contractAddress: import.meta.env.VITE_FHEVM_CONTRACT_ADDRESS || "0x72eEA702E909599bC92f75774c5f1cE41b8B59BA"
-           };
-              try {
-          fheInstance = await createInstance(config);
-         } catch (instanceError: any) {
-           throw new Error(`Failed to create SDK instance: ${instanceError.message}`);
-         }
+    // Use bundled version approach if available
+    if ((window as any).fhevm) {
+      await (window as any).fhevm.initSDK(); // load wasm needed
+      const config = { 
+        network: window.ethereum,
+        relayerUrl: import.meta.env.VITE_RELAYER_URL || 'https://relayer.testnet.zama.cloud'
+      };
+      fheInstance = await (window as any).fhevm.createInstance(config);
+    } else {
+      // Fallback to CDN approach
+      const { initSDK, createInstance, SepoliaConfig } = sdk;
+      
+      await initSDK(); // Loads WASM
+      const config = {
+        ...SepoliaConfig,
+        network: window.ethereum,
+        relayerUrl: import.meta.env.VITE_RELAYER_URL || 'https://relayer.testnet.zama.cloud',
+        contractAddress: import.meta.env.VITE_FHEVM_CONTRACT_ADDRESS || "0x72eEA702E909599bC92f75774c5f1cE41b8B59BA"
+      };
+      try {
+        fheInstance = await createInstance(config);
+      } catch (instanceError: any) {
+        throw new Error(`Failed to create SDK instance: ${instanceError.message}`);
+      }
     }
     
     return fheInstance;
@@ -114,7 +113,7 @@ export async function initializeFheInstance() {
     
     // Create a mock SDK for development/testing
     const mockSDK = {
-             createEncryptedInput: (_contractAddress: string, _userAddress: string) => {
+      createEncryptedInput: (_contractAddress: string, _userAddress: string) => {
         return {
           add32: (value: number) => console.log('🔧 Mock SDK: add32', value),
           add64: (value: number) => console.log('🔧 Mock SDK: add64', value),
@@ -141,6 +140,7 @@ export function getFheInstance() {
 
 // Extend Window interface for ethereum and fhevm
 declare global {
+  // eslint-disable-next-line no-unused-vars
   interface Window {
     ethereum?: any;
     relayerSDK?: any;
@@ -183,7 +183,6 @@ export const isZamaSDKAvailable = (): boolean => {
 // Create EIP-712 signature for user decryption
 export const createEIP712Signature = async (instance: any, signer: any): Promise<string> => {
   try {
-    
     // Generate keypair
     const keypair = instance.generateKeypair();
     

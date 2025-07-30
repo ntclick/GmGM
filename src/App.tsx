@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './index.css';
 import { ethers } from 'ethers';
-import { initializeZamaSDK, getZamaInstance, createEIP712Signature } from './utils/zamaSDK';
+import { initializeZamaSDK, createEIP712Signature } from './utils/zamaSDK';
 import './utils/clearCache';
 import { VERSION } from './utils/version';
 import { CONTRACT_ABI, getContractAddress } from './config/contracts';
 import GMStreak from './components/GMStreak';
 import { GMStreakData } from './types/gmStreak';
-import { GMStreakAPI } from './services/gmStreakAPI';
 
 // TypeScript types for window.ethereum
 declare global {
+  // eslint-disable-next-line no-unused-vars
   interface Window {
     ethereum?: any;
     relayerSDK?: any;
@@ -28,8 +28,7 @@ const FHEGMInterface = () => {
   const [category, setCategory] = useState<string>('morning');
   const [message, setMessage] = useState<string>('GM');
   const [isCorrectNetwork, setIsCorrectNetwork] = useState<boolean>(false);
-  const [fheStatus, setFheStatus] = useState<string>('❌ Not Initialized');
-  const [fheInstance, setFheInstance] = useState<any>(null);
+
   const [isFHEReady, setIsFHEReady] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<string>('');
   const [streakData, setStreakData] = useState<GMStreakData>({
@@ -199,27 +198,21 @@ const FHEGMInterface = () => {
     }
 
     try {
-      setFheStatus('🔄 Checking FHE SDK...');
       setIsFHEReady(false);
       
       // Try to initialize Zama SDK
       const sdk = await initializeZamaSDK();
-      // console.log('SDK result:', sdk);
       
       if (sdk) {
-        setFheInstance(sdk);
-        setFheStatus('✅ FHE SDK Ready');
         setIsFHEReady(true);
-        // console.log('✅ FHE SDK initialized successfully');
+        console.log('✅ FHE SDK initialized successfully');
       } else {
-        setFheStatus('❌ FHE SDK Failed to Initialize');
         setIsFHEReady(false);
-        // console.error('❌ FHE SDK initialization failed');
+        console.warn('❌ FHE SDK initialization failed - real SDK required for encrypted operations');
       }
     } catch (error: any) {
-      setFheStatus('❌ FHE SDK Error: ' + error.message);
       setIsFHEReady(false);
-      // console.error('❌ FHE SDK error:', error);
+      console.error('❌ FHE SDK error:', error);
     }
   }, [isLoading]);
 
@@ -678,7 +671,7 @@ const FHEGMInterface = () => {
                 <button
                   onClick={async () => {
                     // console.log('🔄 Manual network switch requested...');
-                    const result = await checkAndSwitchNetwork();
+                    await checkAndSwitchNetwork();
                     // console.log('Network switch result:', result);
                   }}
                   className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm"
@@ -761,7 +754,7 @@ const FHEGMInterface = () => {
                   <button
                     onClick={async () => {
                       // console.log('🔄 Manual network switch requested...');
-                      const result = await checkAndSwitchNetwork();
+                      await checkAndSwitchNetwork();
                       // console.log('Network switch result:', result);
                     }}
                     className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
@@ -875,13 +868,13 @@ const FHEGMInterface = () => {
                   💡 Leave empty or type "GM" for default message
                 </p>
               </div>
-              <button
-                onClick={submitEncryptedGM}
-                disabled={!isConnected || !isCorrectNetwork || isLoading}
-                className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                {isLoading ? '⏳ Submitting...' : '🔐 Submit Encrypted GM'}
-              </button>
+                             <button
+                 onClick={submitEncryptedGM}
+                 disabled={!isConnected || !isCorrectNetwork || !isFHEReady || isLoading}
+                 className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+               >
+                 {isLoading ? '⏳ Submitting...' : '🔐 Submit Encrypted GM'}
+               </button>
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_FHEVM_CONTRACT_ADDRESS: string
 }
 
+// eslint-disable-next-line no-unused-vars
 interface ImportMeta {
   readonly env: ImportMetaEnv
 } 

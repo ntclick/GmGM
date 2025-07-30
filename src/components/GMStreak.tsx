@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { GMStreakAPI, GMStreakData } from '../services/gmStreakAPI';
+import { GMStreakAPI } from '../services/gmStreakAPI';
+import { GMStreakData } from '../types/gmStreak';
 
 interface GMStreakProps {
   userAddress: string;
-  onStreakUpdate?: (data: GMStreakData) => void;
+  onStreakUpdate?: (_data: GMStreakData) => void;
 }
 
 const GMStreak: React.FC<GMStreakProps> = ({ userAddress, onStreakUpdate }) => {
@@ -51,7 +52,7 @@ const GMStreak: React.FC<GMStreakProps> = ({ userAddress, onStreakUpdate }) => {
       setLoading(true);
       
       // First, get local data as fallback
-      const localData = api.getLocalData(userAddress);
+      api.getLocalData(userAddress);
       
       // Then immediately sync with onchain data
       const syncedData = await api.syncWithOnchain(userAddress);
@@ -151,11 +152,7 @@ const GMStreak: React.FC<GMStreakProps> = ({ userAddress, onStreakUpdate }) => {
     }
   };
 
-  const formatTime = (timestamp: number) => {
-    if (!timestamp) return 'Never';
-    const date = new Date(timestamp);
-    return date.toLocaleString();
-  };
+
 
   const formatLastSync = () => {
     if (!lastSyncTime) return 'Never';
