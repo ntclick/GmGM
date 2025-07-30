@@ -44,8 +44,8 @@ A modern, privacy-focused GM (Good Morning) smart contract interface built with 
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/ntclick/gm.git
-cd gm
+git clone https://github.com/ntclick/GmGM.git
+cd GmGM
 ```
 
 2. **Install dependencies**
@@ -117,8 +117,9 @@ npm run compile      # Compile contracts
 
 ## 🔗 Links
 
+- **🌐 Live Demo**: https://gm-project-nine.vercel.app
 - **Contract**: https://sepolia.etherscan.io/address/0x72eEA702E909599bC92f75774c5f1cE41b8B59BA
-- **Repository**: https://github.com/ntclick/gm.git
+- **Repository**: https://github.com/ntclick/GmGM.git
 - **Author**: **Trung KTS** - [@trungkts29](https://twitter.com/trungkts29)
 
 ---
