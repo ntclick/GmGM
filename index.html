@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>GM Contract Interface - Privacy-Focused Smart Contract by Trung KTS</title>
+    <meta name="description" content="A modern, privacy-focused GM (Good Morning) smart contract interface built with React, TypeScript, and Zama FHEVM technology" />
+    <meta name="keywords" content="gm, smart-contract, fhe, privacy, ethereum, react, typescript, zama, fhevm" />
+    <meta name="author" content="Trung KTS" />
+    <meta property="og:title" content="GM Contract Interface" />
+    <meta property="og:description" content="A modern, privacy-focused GM smart contract interface" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://github.com/ntclick/GMContracts" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:creator" content="@trungkts29" />
+    <meta name="twitter:title" content="GM Contract Interface" />
+    <meta name="twitter:description" content="A modern, privacy-focused GM smart contract interface" />
+                    <script>
+                  // Handle share-modal.js error
+                  window.addEventListener('error', function(e) {
+                    if (e.filename && e.filename.includes('share-modal.js')) {
+                      e.preventDefault();
+                      console.log('Ignoring share-modal.js error');
+                    }
+                  });
+                  
+                  // Additional error handling for share-modal.js
+                  window.addEventListener('DOMContentLoaded', function() {
+                    // Prevent share-modal.js errors
+                    const originalQuerySelector = document.querySelector;
+                    document.querySelector = function(selector) {
+                      try {
+                        return originalQuerySelector.call(this, selector);
+                      } catch (e) {
+                        if (e.message.includes('share-modal')) {
+                          return null;
+                        }
+                        throw e;
+                      }
+                    };
+                  });
+                </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html> 
