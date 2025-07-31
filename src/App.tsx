@@ -200,31 +200,6 @@ const FHEGMInterface = () => {
     }
   };
 
-  // Check FHE SDK status
-  const checkFHEStatus = useCallback(async () => {
-    if (isLoading) {
-      return;
-    }
-
-    try {
-      setIsFHEReady(false);
-      
-      // Try to initialize Zama SDK
-      const sdk = await initializeZamaSDK();
-      
-      if (sdk) {
-        setIsFHEReady(true);
-        console.log('✅ FHE SDK initialized successfully');
-      } else {
-        setIsFHEReady(false);
-        console.warn('❌ FHE SDK initialization failed - real SDK required for encrypted operations');
-      }
-    } catch (error: any) {
-      setIsFHEReady(false);
-      console.error('❌ FHE SDK error:', error);
-    }
-  }, [isLoading]);
-
   // Listen for network and account changes
   useEffect(() => {
     if (window.ethereum) {
@@ -550,7 +525,7 @@ const FHEGMInterface = () => {
       
       setStatus('🔧 Creating signature...');
       // Create EIP-712 signature with timeout
-      const eip712Result = await Promise.race([
+      await Promise.race([
         createEIP712Signature(sdk, signer),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Signature creation timeout')), 10000)

@@ -1,49 +1,31 @@
-import { ethers } from 'ethers';
+// Không import npm SDK nữa!
+import { ethers } from "ethers";
 
 let instance: any = null;
 
-// Initialize the Zama FHE Relayer SDK singleton
 export async function initializeZamaSDK() {
   if (instance) return instance;
-  
   try {
-    // Get SDK from window object (loaded via UMD CDN script tag)
     const sdk = (window as any).relayerSDK;
-    if (!sdk) {
-      throw new Error('Zama SDK not found in window object. Make sure UMD CDN script is loaded.');
-    }
-    
+    if (!sdk) throw new Error('Zama SDK not found in window object. Make sure UMD CDN script is loaded.');
     const { initSDK, createInstance, SepoliaConfig } = sdk;
-    
-    // Step 1: Load WASM first with retry
-    let retryCount = 0;
-    const maxRetries = 3;
-    
-    while (retryCount < maxRetries) {
-      try {
-        await initSDK();
-        break;
-      } catch (wasmError) {
-        retryCount++;
-        if (retryCount >= maxRetries) {
-          throw new Error(`WASM initialization failed after ${maxRetries} attempts`);
-        }
-        // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    }
-    
-    // Step 2: Create instance with proper config
-    const config = { 
-      ...SepoliaConfig, 
-      network: window.ethereum 
-    };
+    await initSDK();
+    const config = { ...SepoliaConfig, network: window.ethereum };
     instance = await createInstance(config);
     return instance;
   } catch (e) {
-    console.error("❌ Failed to initialize Zama SDK:", e);
     instance = null;
     return null;
+  }
+}
+
+// EIP-712 signature cho user decryption (tạm thời skip do SDK bug)
+export async function createEIP712Signature(sdk: any, _signer: any) {
+  try {
+    const { publicKey } = sdk.generateKeypair();
+    return { signature: '0x', publicKey };
+  } catch (error) {
+    return { signature: '0x', publicKey: '' };
   }
 }
 
@@ -52,12 +34,11 @@ export async function createManualEIP712Signature(sdk: any, signer: any) {
   try {
     const { publicKey } = sdk.generateKeypair();
     
-    // Manual EIP-712 structure for Zama FHE
     const domain = {
       name: 'Zama FHE',
       version: '1',
-      chainId: 11155111, // Sepolia chain ID
-      verifyingContract: '0x0000000000000000000000000000000000000000' // Placeholder
+      chainId: 11155111,
+      verifyingContract: '0x0000000000000000000000000000000000000000'
     };
     
     const types = {
@@ -86,41 +67,6 @@ export async function createManualEIP712Signature(sdk: any, signer: any) {
     
     return { signature, publicKey };
   } catch (error) {
-    console.error('❌ Manual EIP-712 signature failed:', error);
-    throw error;
-  }
-}
-
-// EIP-712 signature for user decryption (if needed)
-export async function createEIP712Signature(sdk: any, signer: any) {
-  try {
-    // Temporary: Skip EIP-712 due to SDK bug
-    const { publicKey } = sdk.generateKeypair();
-    
-    // Return dummy signature for now
-    return { signature: '0x', publicKey };
-    
-    /* Original code (commented due to SDK bug):
-    // Try manual approach first
-    try {
-      return await createManualEIP712Signature(sdk, signer);
-    } catch (manualError) {
-      console.warn('⚠️ Manual EIP-712 failed, trying SDK method:', manualError);
-      
-      // Fallback to SDK method
-      const eip712 = sdk.createEIP712(publicKey, signer.address);
-      
-      const signature = await signer.signTypedData(
-        eip712.domain,
-        eip712.types,
-        eip712.message
-      );
-      
-      return { signature, publicKey };
-    }
-    */
-  } catch (error) {
-    console.error('❌ EIP-712 signature failed:', error);
     throw error;
   }
 }

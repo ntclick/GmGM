@@ -22,6 +22,14 @@
     
     <!-- Zama FHE SDK - UMD CDN -->
     <script src="https://cdn.zama.ai/relayer-sdk-js/0.1.0-9/relayer-sdk-js.umd.cjs" type="text/javascript"></script>
+    
+    <script>
+      window.addEventListener('error', function(e) {
+        if (e.filename && e.filename.includes('share-modal.js')) {
+          e.preventDefault();
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>

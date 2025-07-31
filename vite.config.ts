@@ -4,8 +4,17 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: {
+    global: 'window',
+    'process.env': {},
+    Buffer: ['buffer', 'Buffer'],
+  },
+  optimizeDeps: {
+    include: ['buffer'],
+    exclude: ['@zama-fhe/relayer-sdk']
+  },
   server: {
-    port: 4000,
+    port: 3000,
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp'
@@ -13,24 +22,20 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    minify: 'terser',
     rollupOptions: {
+      external: ['events', 'util'],
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          ethers: ['ethers'],
-          zama: ['@zama-fhe/relayer-sdk']
+          ethers: ['ethers']
         }
-      }
-    },
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
       }
     }
   },
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'ethers']
+  resolve: {
+    alias: {
+      'events': 'events',
+      'util': 'util'
+    }
   }
 }) 
