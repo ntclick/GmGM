@@ -21,6 +21,14 @@
     <meta name="twitter:description" content="A modern, privacy-focused GM smart contract interface" />
     
     <!-- Zama FHE SDK - UMD CDN -->
+    <!-- Polyfill nhỏ cho `require` dùng trong UMD (tránh lỗi `require is not defined`) -->
+    <script>
+      if (typeof window.require === 'undefined') {
+        window.require = function () {
+          return {};
+        };
+      }
+    </script>
     <script src="https://cdn.zama.ai/relayer-sdk-js/0.1.0-9/relayer-sdk-js.umd.cjs" type="text/javascript"></script>
   </head>
   <body>
