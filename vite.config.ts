@@ -5,24 +5,32 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3010,
-    host: true,
+    port: 4000,
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp'
     }
   },
   build: {
-    outDir: 'dist',
-    sourcemap: false,
+    target: 'esnext',
     minify: 'terser',
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          ethers: ['ethers']
+          ethers: ['ethers'],
+          zama: ['@zama-fhe/relayer-sdk']
         }
       }
+    },
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
     }
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'ethers']
   }
 }) 

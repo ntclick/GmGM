@@ -19,31 +19,9 @@
     <meta name="twitter:creator" content="@trungkts29" />
     <meta name="twitter:title" content="GM Contract Interface" />
     <meta name="twitter:description" content="A modern, privacy-focused GM smart contract interface" />
-                    <script>
-                  // Handle share-modal.js error
-                  window.addEventListener('error', function(e) {
-                    if (e.filename && e.filename.includes('share-modal.js')) {
-                      e.preventDefault();
-                      console.log('Ignoring share-modal.js error');
-                    }
-                  });
-                  
-                  // Additional error handling for share-modal.js
-                  window.addEventListener('DOMContentLoaded', function() {
-                    // Prevent share-modal.js errors
-                    const originalQuerySelector = document.querySelector;
-                    document.querySelector = function(selector) {
-                      try {
-                        return originalQuerySelector.call(this, selector);
-                      } catch (e) {
-                        if (e.message.includes('share-modal')) {
-                          return null;
-                        }
-                        throw e;
-                      }
-                    };
-                  });
-                </script>
+    
+    <!-- Zama FHE SDK - UMD CDN -->
+    <script src="https://cdn.zama.ai/relayer-sdk-js/0.1.0-9/relayer-sdk-js.umd.cjs" type="text/javascript"></script>
   </head>
   <body>
     <div id="root"></div>

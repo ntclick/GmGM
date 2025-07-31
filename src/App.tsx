@@ -72,24 +72,33 @@ const FHEGMInterface = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Initialize FHE status on component mount
+  // Force check FHE status when wallet connects
+  useEffect(() => {
+    if (isConnected && !isFHEReady) {
+      const checkFHE = async () => {
+        const sdk = await initializeZamaSDK();
+        if (sdk) {
+          setIsFHEReady(true);
+        }
+      };
+      checkFHE();
+    }
+  }, [isConnected]);
+
+  // Initialize FHE once on mount
   useEffect(() => {
     const initFHE = async () => {
-      await checkFHEStatus();
+      try {
+        const sdk = await initializeZamaSDK();
+        if (sdk) {
+          setIsFHEReady(true);
+        }
+      } catch (error) {
+        console.error('❌ FHE initialization failed on mount:', error);
+      }
     };
     initFHE();
-    
-    // Check FHE status every 60 seconds (reduced frequency to avoid conflicts)
-    const interval = setInterval(async () => {
-      if (!isLoading) { // Only check if not currently submitting
-        await checkFHEStatus();
-      } else {
-        // console.log('⏸️ Skipping FHE status check - currently submitting...');
-      }
-    }, 60000); // Increased to 60 seconds
-    
-    return () => clearInterval(interval);
-  }, [isLoading]);
+  }, []);
 
   // Check previous connection on mount
   useEffect(() => {
@@ -336,7 +345,18 @@ const FHEGMInterface = () => {
       
       // console.log('🔗 Connected to wallet:', address);
     } catch (error: any) {
-      setStatus('❌ Failed to connect wallet: ' + error.message);
+      console.error('❌ Wallet connection error:', error);
+      
+      // Handle specific MetaMask errors
+      if (error.message.includes('MetaMask extension not found')) {
+        setStatus('❌ MetaMask extension not found. Please install MetaMask.');
+      } else if (error.message.includes('user rejected')) {
+        setStatus('❌ Connection rejected by user.');
+      } else if (error.message.includes('network')) {
+        setStatus('❌ Network error. Please check your connection.');
+      } else {
+        setStatus('❌ Failed to connect wallet: ' + error.message);
+      }
     }
   }, [checkAndSwitchNetwork]);
 
@@ -361,20 +381,27 @@ const FHEGMInterface = () => {
       
       if (wasConnected === 'true' && savedAddress && window.ethereum) {
         // Check if MetaMask is still available and connected
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-        if (accounts.length > 0 && accounts[0].toLowerCase() === savedAddress.toLowerCase()) {
-          setUserAddress(savedAddress);
-          setIsConnected(true);
-          setStatus('✅ Wallet reconnected automatically');
-          // console.log('🔗 Auto-reconnected to wallet:', savedAddress);
-        } else {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0 && accounts[0].toLowerCase() === savedAddress.toLowerCase()) {
+            setUserAddress(savedAddress);
+            setIsConnected(true);
+            setStatus('✅ Wallet reconnected automatically');
+            // console.log('🔗 Auto-reconnected to wallet:', savedAddress);
+          } else {
+            // Clear invalid saved state
+            localStorage.removeItem('wallet-connected');
+            localStorage.removeItem('wallet-address');
+          }
+        } catch (metamaskError) {
+          console.error('❌ MetaMask error during auto-reconnect:', metamaskError);
           // Clear invalid saved state
           localStorage.removeItem('wallet-connected');
           localStorage.removeItem('wallet-address');
         }
       }
     } catch (error) {
-      // console.error('Failed to check previous connection:', error);
+      console.error('❌ Failed to check previous connection:', error);
       // Clear invalid saved state
       localStorage.removeItem('wallet-connected');
       localStorage.removeItem('wallet-address');
@@ -413,7 +440,10 @@ const FHEGMInterface = () => {
       const { handles, inputProof } = await ciphertext.encrypt();
       
       // Create EIP-712 signature
-      await createEIP712Signature(sdk, signer);
+      setStatus('🔧 Creating EIP-712 signature...');
+      console.log('🔐 About to create EIP-712 signature...');
+      const eip712Result = await createEIP712Signature(sdk, signer);
+      console.log('✅ EIP-712 signature result:', eip712Result);
       
       // Submit transaction using the correct 'gm' function (like old code)
       const tx = await contract.gm!(
@@ -485,7 +515,7 @@ const FHEGMInterface = () => {
       const sdk = await Promise.race([
         initializeZamaSDK(),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('SDK initialization timeout - please try again')), 20000)
+          setTimeout(() => reject(new Error('SDK initialization timeout - please try again')), 60000)
         )
       ]);
       
@@ -520,7 +550,7 @@ const FHEGMInterface = () => {
       
       setStatus('🔧 Creating signature...');
       // Create EIP-712 signature with timeout
-      await Promise.race([
+      const eip712Result = await Promise.race([
         createEIP712Signature(sdk, signer),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Signature creation timeout')), 10000)
@@ -657,6 +687,38 @@ const FHEGMInterface = () => {
                     Address: {userAddress.slice(0, 6)}...{userAddress.slice(-4)}
                   </p>
                 )}
+                <div className="flex space-x-2 mt-2">
+                  {!isFHEReady && (
+                    <button
+                      onClick={async () => {
+                        console.log('🔄 Manual FHE check...');
+                        const sdk = await initializeZamaSDK();
+                        console.log('🔍 Manual check result:', sdk);
+                        setIsFHEReady(!!sdk);
+                      }}
+                      className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+                    >
+                      🔄 Check FHE
+                    </button>
+                  )}
+                  <button
+                    onClick={async () => {
+                      console.log('🔍 Debug FHE State:', {
+                        isFHEReady,
+                        isConnected,
+                        isCorrectNetwork,
+                        isLoading
+                      });
+                      console.log('🔍 Window SDK:', (window as any).relayerSDK);
+                      const sdk = await initializeZamaSDK();
+                      console.log('🔍 SDK Test:', sdk);
+                      setIsFHEReady(!!sdk);
+                    }}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-xs"
+                  >
+                    🔍 Debug FHE
+                  </button>
+                </div>
               </div>
               {isConnected && !isCorrectNetwork && (
                 <div className="mt-2 p-2 bg-yellow-100 border border-yellow-300 rounded-md">

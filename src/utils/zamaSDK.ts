@@ -1,141 +1,128 @@
 import { ethers } from 'ethers';
 
-// Import Zama SDK using bundled version for better compatibility
-let fheInstance: any = null;
+let instance: any = null;
 
-// Load SDK from bundled version with timeout
-const loadZamaSDK = async () => {
-  return new Promise<boolean>((resolve, reject) => {
-    // Check if SDK is already loaded
-    if (typeof window !== 'undefined' && (window as any).fhevm) {
-      resolve(true);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://cdn.zama.ai/fhevm/bundle.js';
-    script.type = 'text/javascript';
-    
-    // Add timeout
-    const timeout = setTimeout(() => {
-      script.onerror?.('Script loading failed');
-    }, 10000);
-    
-    script.onload = () => {
-      clearTimeout(timeout);
-      resolve(true);
-    };
-    
-    script.onerror = () => {
-      clearTimeout(timeout);
-      // Fallback to CDN version
-      const fallbackScript = document.createElement('script');
-      fallbackScript.src = 'https://cdn.zama.ai/relayer-sdk-js/0.1.0/relayer-sdk-js.umd.cjs';
-      fallbackScript.type = 'text/javascript';
-      
-      const fallbackTimeout = setTimeout(() => {
-        reject(new Error('Failed to load SDK from all sources'));
-      }, 8000);
-      
-      fallbackScript.onload = () => {
-        clearTimeout(fallbackTimeout);
-        resolve(true);
-      };
-      
-      fallbackScript.onerror = () => {
-        clearTimeout(fallbackTimeout);
-        reject(new Error('Failed to load SDK from all sources'));
-      };
-      
-      document.head.appendChild(fallbackScript);
-    };
-    
-    document.head.appendChild(script);
-  });
-};
-
-export async function initializeFheInstance() {
+// Initialize the Zama FHE Relayer SDK singleton
+export async function initializeZamaSDK() {
+  if (instance) return instance;
+  
   try {
-    // Check if we're in a browser environment
-    if (typeof window === 'undefined') {
-      return null;
-    }
-
-    // Check if ethereum provider is available
-    if (typeof window.ethereum === 'undefined') {
-      return null;
-    }
-
-    // Load SDK from bundled version
-    await loadZamaSDK();
-    
-    // Try bundled version first, then fallback to CDN
-    let sdk = (window as any).fhevm;
+    // Get SDK from window object (loaded via UMD CDN script tag)
+    const sdk = (window as any).relayerSDK;
     if (!sdk) {
-      sdk = (window as any).relayerSDK;
+      throw new Error('Zama SDK not found in window object. Make sure UMD CDN script is loaded.');
     }
     
-    if (!sdk) {
-      throw new Error('SDK not found in window object');
-    }
+    const { initSDK, createInstance, SepoliaConfig } = sdk;
     
-    // Use bundled version approach if available
-    if ((window as any).fhevm) {
-      await (window as any).fhevm.initSDK(); // load wasm needed
-      const config = { 
-        network: window.ethereum,
-        relayerUrl: import.meta.env.VITE_RELAYER_URL || 'https://relayer.testnet.zama.cloud'
-      };
-      fheInstance = await (window as any).fhevm.createInstance(config);
-    } else {
-      // Fallback to CDN approach
-      const { initSDK, createInstance, SepoliaConfig } = sdk;
-      
-      await initSDK(); // Loads WASM
-      const config = {
-        ...SepoliaConfig,
-        network: window.ethereum,
-        relayerUrl: import.meta.env.VITE_RELAYER_URL || 'https://relayer.testnet.zama.cloud',
-        contractAddress: import.meta.env.VITE_FHEVM_CONTRACT_ADDRESS || "0x72eEA702E909599bC92f75774c5f1cE41b8B59BA"
-      };
+    // Step 1: Load WASM first with retry
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
       try {
-        fheInstance = await createInstance(config);
-      } catch (instanceError: any) {
-        throw new Error(`Failed to create SDK instance: ${instanceError.message}`);
+        await initSDK();
+        break;
+      } catch (wasmError) {
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          throw new Error(`WASM initialization failed after ${maxRetries} attempts`);
+        }
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
     
-    return fheInstance;
-    
-  } catch (error) {
-    console.error('❌ SDK initialization failed:', error);
-    console.log('⚠️ Cannot initialize real Zama SDK');
-    
-    // Create a mock SDK for development/testing
-    const mockSDK = {
-      createEncryptedInput: (_contractAddress: string, _userAddress: string) => {
-        return {
-          add32: (value: number) => console.log('🔧 Mock SDK: add32', value),
-          add64: (value: number) => console.log('🔧 Mock SDK: add64', value),
-          encrypt: async () => {
-            console.log('🔧 Mock SDK: encrypt called');
-            return {
-              handles: ['0x' + '0'.repeat(64)],
-              inputProof: '0x' + '0'.repeat(128)
-            };
-          }
-        };
-      },
-      generateKeypair: () => ({ publicKey: 'mock-key' }),
-      createEIP712: () => ({ domain: {}, types: {}, message: {} })
+    // Step 2: Create instance with proper config
+    const config = { 
+      ...SepoliaConfig, 
+      network: window.ethereum 
     };
-    
-    return mockSDK;
+    instance = await createInstance(config);
+    return instance;
+  } catch (e) {
+    console.error("❌ Failed to initialize Zama SDK:", e);
+    instance = null;
+    return null;
   }
 }
 
-export function getFheInstance() {
-  return fheInstance;
+// Manual EIP-712 signature for user decryption
+export async function createManualEIP712Signature(sdk: any, signer: any) {
+  try {
+    const { publicKey } = sdk.generateKeypair();
+    
+    // Manual EIP-712 structure for Zama FHE
+    const domain = {
+      name: 'Zama FHE',
+      version: '1',
+      chainId: 11155111, // Sepolia chain ID
+      verifyingContract: '0x0000000000000000000000000000000000000000' // Placeholder
+    };
+    
+    const types = {
+      EIP712Domain: [
+        { name: 'name', type: 'string' },
+        { name: 'version', type: 'string' },
+        { name: 'chainId', type: 'uint256' },
+        { name: 'verifyingContract', type: 'address' }
+      ],
+      DecryptRequest: [
+        { name: 'publicKey', type: 'bytes' },
+        { name: 'user', type: 'address' }
+      ]
+    };
+    
+    const message = {
+      publicKey: publicKey,
+      user: signer.address
+    };
+    
+    const signature = await signer.signTypedData(
+      domain,
+      types,
+      message
+    );
+    
+    return { signature, publicKey };
+  } catch (error) {
+    console.error('❌ Manual EIP-712 signature failed:', error);
+    throw error;
+  }
+}
+
+// EIP-712 signature for user decryption (if needed)
+export async function createEIP712Signature(sdk: any, signer: any) {
+  try {
+    // Temporary: Skip EIP-712 due to SDK bug
+    const { publicKey } = sdk.generateKeypair();
+    
+    // Return dummy signature for now
+    return { signature: '0x', publicKey };
+    
+    /* Original code (commented due to SDK bug):
+    // Try manual approach first
+    try {
+      return await createManualEIP712Signature(sdk, signer);
+    } catch (manualError) {
+      console.warn('⚠️ Manual EIP-712 failed, trying SDK method:', manualError);
+      
+      // Fallback to SDK method
+      const eip712 = sdk.createEIP712(publicKey, signer.address);
+      
+      const signature = await signer.signTypedData(
+        eip712.domain,
+        eip712.types,
+        eip712.message
+      );
+      
+      return { signature, publicKey };
+    }
+    */
+  } catch (error) {
+    console.error('❌ EIP-712 signature failed:', error);
+    throw error;
+  }
 }
 
 // Extend Window interface for ethereum and fhevm
@@ -151,57 +138,24 @@ declare global {
 // Zama SDK types - using any for now to avoid type conflicts
 type ZamaInstance = any;
 
-// Global variables for SDK instance (for backward compatibility)
-let isInitializing = false;
-
-// Initialize Zama SDK with proper configuration (for backward compatibility)
-export const initializeZamaSDK = async (): Promise<ZamaInstance | null> => {
-  if (fheInstance) {
-    return fheInstance;
-  }
-
-  if (isInitializing) {
-    return null;
-  }
-
-  isInitializing = true;
-  const result = await initializeFheInstance();
-  isInitializing = false;
-  return result;
-};
-
 // Get the current Zama instance (for backward compatibility)
 export const getZamaInstance = (): ZamaInstance | null => {
-  return fheInstance;
+  return instance;
 };
 
 // Check if SDK is available (for backward compatibility)
 export const isZamaSDKAvailable = (): boolean => {
-  return !!fheInstance;
+  return !!instance;
 };
 
-// Create EIP-712 signature for user decryption
-export const createEIP712Signature = async (instance: any, signer: any): Promise<string> => {
-  try {
-    // Generate keypair
-    const keypair = instance.generateKeypair();
-    
-    // Create EIP-712 data
-    const eip712 = instance.createEIP712(keypair.publicKey, [], Date.now(), 365);
-    
-    // Sign with ethers (remove EIP712Domain from types for ethers)
-    const typesForEthers = { UserDecryptRequestVerification: eip712.types.UserDecryptRequestVerification };
-    const signature = await signer.signTypedData(
-      eip712.domain,
-      typesForEthers,
-      eip712.message
-    );
-    
-    return signature;
-  } catch (error) {
-    console.error('❌ Failed to create EIP-712 signature:', error);
-    throw error;
-  }
+// Initialize FHE instance (for backward compatibility)
+export const initializeFheInstance = async (): Promise<ZamaInstance | null> => {
+  return await initializeZamaSDK();
+};
+
+// Get FHE instance (for backward compatibility)
+export const getFheInstance = (): ZamaInstance | null => {
+  return instance;
 };
 
 // Validate contract address format

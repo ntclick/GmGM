@@ -33,6 +33,7 @@
     "verify-hardhat": "npx hardhat verify --network sepolia"
   },
   "dependencies": {
+    "@zama-fhe/relayer-sdk": "^0.1.2",
     "dotenv": "^17.2.1",
     "ethers": "^6.8.1",
     "react": "^18.2.0",
