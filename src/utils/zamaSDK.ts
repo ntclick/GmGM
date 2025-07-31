@@ -1,3 +1,4 @@
+import { initSDK, createInstance, SepoliaConfig } from '@zama-fhe/relayer-sdk/bundle';
 import { ethers } from 'ethers';
 
 let instance: any = null;
@@ -7,13 +8,8 @@ export async function initializeZamaSDK() {
   if (instance) return instance;
   
   try {
-    // Get SDK from window object (loaded via UMD CDN script tag)
-    const sdk = (window as any).relayerSDK;
-    if (!sdk) {
-      throw new Error('Zama SDK not found in window object. Make sure UMD CDN script is loaded.');
-    }
-    
-    const { initSDK, createInstance, SepoliaConfig } = sdk;
+    // Load WASM & SDK (bundle version) — no global needed
+    // initSDK & createInstance come from the ESM bundle import
     
     // Step 1: Load WASM first with retry
     let retryCount = 0;
