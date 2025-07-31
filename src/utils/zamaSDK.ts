@@ -10,7 +10,7 @@ export async function initializeZamaSDK() {
     // Get SDK from window object (loaded via UMD CDN script tag)
     const sdk = (window as any).relayerSDK;
     if (!sdk) {
-      throw new Error('Zama SDK not found in window object. Make sure UMD CDN script is loaded.');
+      throw new Error("Zama SDK UMD chưa tải xong. Kiểm tra lại script CDN trong index.html");
     }
     
     const { initSDK, createInstance, SepoliaConfig } = sdk;
