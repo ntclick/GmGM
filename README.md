@@ -1,26 +1,15 @@
 # 🔐 FHE GM Contract Interface
 
-A modern, privacy-focused GM (Good Morning) smart contract interface built with React, TypeScript, and Zama FHEVM technology.
+A modern, privacy-focused Good Morning (GM) check-in smart contract interface built with React, TypeScript, and Zama FHEVM.
 
 ## 🚀 Features
 
-### 🔐 FHE Encryption
-- **Fully Homomorphic Encryption** - Privacy-preserving operations
-- **Encrypted GM Messages** - Private message submission
-- **EIP-712 Signatures** - Secure user authentication
-- **WASM Integration** - High-performance encryption
-- **Cross-Origin Headers** - Web Worker support
-
-### 📱 Modern UI
-- **React 18** + TypeScript + Tailwind CSS
-- **Responsive Design** - Mobile-friendly interface
-- **Real-time Updates** - Live blockchain data
-- **Wallet Integration** - MetaMask support
-
-### 📊 GM Streak Tracking
-- **Streak Analytics** - GM submission history
-- **Encrypted Messages** - Privacy-preserving GM
-- **Network Support** - Sepolia Testnet
+- **🔐 FHE Encryption**: All GM data is fully homomorphically encrypted (FHE).
+- **📱 Modern UI**: React 18 + TypeScript + Tailwind CSS.
+- **🔗 Wallet Integration**: MetaMask support.
+- **📊 Streak Tracking**: GM check-in history and analytics.
+- **⚡ Real-time Updates**: Live blockchain data.
+- **🌐 Sepolia Testnet**: Deployed for testing.
 
 ## 🛠️ Tech Stack
 
@@ -29,70 +18,31 @@ A modern, privacy-focused GM (Good Morning) smart contract interface built with 
 - **Blockchain**: Ethers.js v6
 - **FHE**: Zama FHE Relayer SDK
 - **Network**: Sepolia Testnet
-- **Deployment**: Vercel
-- **Smart Contracts**: Solidity with FHEVM
+- **Smart Contracts**: Solidity + FHEVM
 
 ## 📦 Installation
 
 ```bash
-# Clone repository
 git clone https://github.com/ntclick/GmGM.git
 cd GM-Project
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
 ## 🔧 Development
 
 ```bash
-# Development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Deploy contract
-npx hardhat run scripts/deploy-contract.js --network sepolia
+npm run dev         # Start dev server
+npm run build       # Build for production
+npm run preview     # Preview production build
+npx hardhat run scripts/deploy-contract.js --network sepolia  # Deploy contract
 ```
 
-## 🚀 Deployment
-
-### Vercel (Recommended)
-
-1. **Connect to GitHub:**
-   ```bash
-   git add .
-   git commit -m "Update documentation"
-   git push origin main
-   ```
-
-2. **Deploy to Vercel:**
-   - Go to [vercel.com](https://vercel.com)
-   - Import your GitHub repository
-   - Vercel will auto-detect Vite configuration
-   - Deploy with one click!
-
-### Manual Deployment
-
-```bash
-# Build project
-npm run build
-
-# Deploy to any static hosting
-# (Netlify, GitHub Pages, etc.)
-```
-
-## 🎰 Smart Contracts
+## 🎰 Smart Contract
 
 ### GMContract.sol
-GM submission contract with FHE encryption for privacy-preserving messages.
+
+The GM check-in contract, privacy-preserving with FHE.
 
 **Key Functions:**
 ```solidity
@@ -101,64 +51,44 @@ function submitEncryptedGM(externalEuint32 encryptedMessage, bytes calldata atte
 function getGMStreak(address user) external view returns (uint256)
 ```
 
+### Storage Architecture
+
+```solidity
+mapping(address => euint32) public encryptedGMCount;    // Encrypted GM count
+mapping(address => euint32) public encryptedLastGM;     // Encrypted last GM timestamp
+uint256 public totalGMs;                                // Total GMs
+mapping(address => uint256) public gmStreak;            // Public GM streaks
+```
+
 ## 🔐 FHE Features
 
-### Encrypted Data Types
-- **euint32** - Encrypted 32-bit integers (GM messages)
-- **externalEuint32** - External encrypted inputs from frontend
-
-### FHE Operations
-- **FHE.fromExternal()** - Convert external encrypted input
-- **FHE.allow()** - Grant decryption permission
-- **FHE.allowThis()** - Grant contract decryption permission
-
-### Privacy Features
-- **Message Encryption** - GM messages encrypted on-chain
-- **Selective Disclosure** - Users choose what to make public
-- **Zero-Knowledge Proofs** - Cryptographic attestations
-- **EIP-712 Signatures** - Secure user authentication
+- **euint32**: All GM data is fully encrypted.
+- **FHE.fromExternal()**: Accepts encrypted input from frontend.
+- **FHE.allow()**: Allows users to decrypt their own data.
+- **EIP-712**: Secure user authentication.
 
 ## 📱 Usage
 
-### GM System
-1. **Connect Wallet** - MetaMask required
-2. **Switch to Sepolia** - Testnet network
-3. **Submit GM** - Simple or encrypted messages
-4. **Track Streaks** - View your GM history
-
-## 🎯 Contract Architecture
-
-### Encrypted User State
-```solidity
-mapping(address => euint32) public encryptedGMCount;    // GM count
-mapping(address => euint32) public encryptedLastGM;     // Last GM timestamp
-```
-
-### Public Data
-```solidity
-uint256 public totalGMs;                    // Total GMs submitted
-mapping(address => uint256) public gmStreak; // Public GM streaks
-```
-
-### Workflow
-1. **Frontend** - Encrypts GM message using Zama SDK
-2. **Contract** - Processes encrypted data with FHE operations
-3. **User** - Decrypts their own data using FHE.allow()
-4. **Public** - Optional disclosure via makePubliclyDecryptable()
+1. Connect your MetaMask wallet.
+2. Switch to the Sepolia network.
+3. Submit your GM (plain or encrypted).
+4. View your streak history.
 
 ## 🔗 Links
 
-- **Live Demo**: [Vercel Production](https://gm-project-ea66mwcf5-trungkts-projects.vercel.app)
+- **Live Demo**: [https://gm-project-nine.vercel.app/](https://gm-project-nine.vercel.app/)
 - **GitHub Repo**: [ntclick/GmGM](https://github.com/ntclick/GmGM)
-- **Contract**: [Sepolia Etherscan]
-- **Documentation**: [Zama FHE Docs](https://docs.zama.ai/fhevm)
+- **FHE Documentation**: [Zama FHE Docs](https://docs.zama.ai/fhevm)
 
 ## 👨‍💻 Author
 
 **Trung KTS** - [@trungkts29](https://x.com/trungkts29)
 
-Built with ❤️ using Zama FHE technology.
+---
 
-## 📄 License
+**Note:**  
+The Lucky Spin feature will be developed in a separate project and is not included in this repository.
 
-MIT License - see LICENSE file for details. 
+---
+
+Let me know if you want a CONTRIBUTING.md or more detailed instructions! 
