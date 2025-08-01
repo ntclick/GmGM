@@ -10,6 +10,7 @@ A modern, privacy-focused GM (Good Morning) smart contract interface built with 
 - **📊 Streak Tracking** - GM streak analytics
 - **⚡ Real-time Updates** - Live blockchain data
 - **🌐 Sepolia Network** - Testnet deployment
+- **🎰 Lucky Spin System** - Encrypted reward system with leaderboard
 
 ## 🛠️ Tech Stack
 
@@ -80,6 +81,39 @@ npm run build
 - **EIP-712 Signatures** - Secure user authentication
 - **WASM Integration** - High-performance encryption
 - **Cross-Origin Headers** - Web Worker support
+- **Lucky Spin System** - Encrypted reward pools and leaderboard
+
+## 🎰 Lucky Spin System
+
+### Smart Contracts
+
+1. **GMContract.sol** - Original GM submission contract
+2. **LuckySpinFHE.sol** - New reward system contract
+
+### Features
+
+- **🔐 Encrypted User State** - Spins, scores, check-in days
+- **🎯 Reward Pools** - Configurable rewards with probabilities
+- **📊 Leaderboard** - Public score rankings
+- **✅ Daily Check-in** - Receive spins daily
+- **🎲 Random Spins** - Frontend-controlled randomness
+
+### Contract Functions
+
+```solidity
+// User Actions
+function checkIn(externalEuint8 encryptedSpins, bytes attestation) external
+function spinAndClaimReward(externalEuint8 poolIndex, externalEuint32 points, ...) external
+function makeScorePublic() external
+
+// Admin Functions
+function addPool(string name, string imageUrl, uint256 value, uint256 probability) external
+function submitPublicScore(address user, uint32 score, ...) external
+
+// View Functions
+function getPools() external view returns (PoolReward[])
+function getLeaderboard() external view returns (PublicScore[])
+```
 
 ## 📱 Usage
 
@@ -87,6 +121,9 @@ npm run build
 2. **Switch to Sepolia** - Testnet network
 3. **Submit GM** - Simple or encrypted
 4. **Track Streaks** - View your GM history
+5. **Daily Check-in** - Receive spins
+6. **Spin for Rewards** - Win encrypted rewards
+7. **View Leaderboard** - See top players
 
 ## 🔗 Links
 
