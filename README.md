@@ -1,12 +1,12 @@
 # 🔐 FHE GM Contract Interface
 
-A modern, privacy-focused smart contract interface built with React, TypeScript, and Zama FHEVM technology. Features both GM (Good Morning) submission system and Lucky Spin reward system with encrypted user state.
+A modern, privacy-focused GM (Good Morning) smart contract interface built with React, TypeScript, and Zama FHEVM technology.
 
 ## 🚀 Features
 
 ### 🔐 FHE Encryption
 - **Fully Homomorphic Encryption** - Privacy-preserving operations
-- **Encrypted User State** - Spins, scores, check-in days
+- **Encrypted GM Messages** - Private message submission
 - **EIP-712 Signatures** - Secure user authentication
 - **WASM Integration** - High-performance encryption
 - **Cross-Origin Headers** - Web Worker support
@@ -16,12 +16,6 @@ A modern, privacy-focused smart contract interface built with React, TypeScript,
 - **Responsive Design** - Mobile-friendly interface
 - **Real-time Updates** - Live blockchain data
 - **Wallet Integration** - MetaMask support
-
-### 🎰 Lucky Spin System
-- **Encrypted Reward Pools** - Configurable with probabilities
-- **Daily Check-in** - Receive spins daily
-- **Leaderboard** - Public score rankings
-- **Admin Management** - Pool and leaderboard control
 
 ### 📊 GM Streak Tracking
 - **Streak Analytics** - GM submission history
@@ -64,9 +58,8 @@ npm run build
 # Preview production build
 npm run preview
 
-# Deploy contracts
+# Deploy contract
 npx hardhat run scripts/deploy-contract.js --network sepolia
-npx hardhat run scripts/deploy-lucky-spin.js --network sepolia
 ```
 
 ## 🚀 Deployment
@@ -98,8 +91,8 @@ npm run build
 
 ## 🎰 Smart Contracts
 
-### 1. GMContract.sol
-Original GM submission contract with FHE encryption.
+### GMContract.sol
+GM submission contract with FHE encryption for privacy-preserving messages.
 
 **Key Functions:**
 ```solidity
@@ -108,42 +101,19 @@ function submitEncryptedGM(externalEuint32 encryptedMessage, bytes calldata atte
 function getGMStreak(address user) external view returns (uint256)
 ```
 
-### 2. LuckySpinFHE.sol
-Complete reward system with encrypted user state.
-
-**Key Functions:**
-```solidity
-// User Actions
-function checkIn(externalEuint8 encryptedSpins, bytes attestation) external
-function spinAndClaimReward(externalEuint8 poolIndex, externalEuint32 points, ...) external
-function makeScorePublic() external
-
-// Admin Functions
-function addPool(string name, string imageUrl, uint256 value, uint256 probability) external
-function submitPublicScore(address user, uint32 score, ...) external
-
-// View Functions
-function getPools() external view returns (PoolReward[])
-function getLeaderboard() external view returns (PublicScore[])
-```
-
 ## 🔐 FHE Features
 
 ### Encrypted Data Types
-- **euint8** - Encrypted 8-bit integers (spins, pool indices)
-- **euint32** - Encrypted 32-bit integers (scores, check-in days)
-- **externalEuint8/32** - External encrypted inputs from frontend
+- **euint32** - Encrypted 32-bit integers (GM messages)
+- **externalEuint32** - External encrypted inputs from frontend
 
 ### FHE Operations
-- **FHE.add()** - Encrypted addition
-- **FHE.sub()** - Encrypted subtraction  
-- **FHE.gt()** - Encrypted greater than comparison
-- **FHE.select()** - Conditional selection
+- **FHE.fromExternal()** - Convert external encrypted input
 - **FHE.allow()** - Grant decryption permission
-- **FHE.makePubliclyDecryptable()** - Make data public
+- **FHE.allowThis()** - Grant contract decryption permission
 
 ### Privacy Features
-- **User State Encryption** - All user data encrypted on-chain
+- **Message Encryption** - GM messages encrypted on-chain
 - **Selective Disclosure** - Users choose what to make public
 - **Zero-Knowledge Proofs** - Cryptographic attestations
 - **EIP-712 Signatures** - Secure user authentication
@@ -156,36 +126,22 @@ function getLeaderboard() external view returns (PublicScore[])
 3. **Submit GM** - Simple or encrypted messages
 4. **Track Streaks** - View your GM history
 
-### Lucky Spin System
-1. **Daily Check-in** - Receive spins daily
-2. **Spin for Rewards** - Win encrypted rewards
-3. **View Leaderboard** - See top players
-4. **Make Score Public** - Join leaderboard (optional)
-
-### Admin Functions
-1. **Manage Pools** - Add/edit/remove reward pools
-2. **Submit Scores** - Add public scores to leaderboard
-3. **Reset Leaderboard** - Clear all scores
-
 ## 🎯 Contract Architecture
 
 ### Encrypted User State
 ```solidity
-mapping(address => euint8) public encryptedSpinCount;         // Spins left
-mapping(address => euint32) public encryptedScores;           // User scores
-mapping(address => euint8) public encryptedLastRewardIndex;   // Last reward
-mapping(address => euint32) public encryptedTotalSpins;       // Total spins
-mapping(address => euint32) public encryptedCheckInDays;      // Check-in days
+mapping(address => euint32) public encryptedGMCount;    // GM count
+mapping(address => euint32) public encryptedLastGM;     // Last GM timestamp
 ```
 
 ### Public Data
 ```solidity
-PoolReward[] public poolRewards;        // Reward pools
-PublicScore[] public publicLeaderboard;  // Leaderboard
+uint256 public totalGMs;                    // Total GMs submitted
+mapping(address => uint256) public gmStreak; // Public GM streaks
 ```
 
 ### Workflow
-1. **Frontend** - Encrypts user inputs using Zama SDK
+1. **Frontend** - Encrypts GM message using Zama SDK
 2. **Contract** - Processes encrypted data with FHE operations
 3. **User** - Decrypts their own data using FHE.allow()
 4. **Public** - Optional disclosure via makePubliclyDecryptable()

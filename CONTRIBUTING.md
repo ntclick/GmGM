@@ -1,6 +1,6 @@
 # 🤝 Contributing to FHE GM Contract Interface
 
-Thank you for your interest in contributing to our FHE-powered smart contract interface! This document provides guidelines for contributing to the project.
+Thank you for your interest in contributing to our FHE-powered GM (Good Morning) smart contract interface! This document provides guidelines for contributing to the project.
 
 ## 📋 Table of Contents
 
@@ -44,7 +44,6 @@ Create a `.env.local` file in the root directory:
 
 ```env
 VITE_CONTRACT_ADDRESS=your_gm_contract_address
-VITE_LUCKY_SPIN_ADDRESS=your_lucky_spin_contract_address
 VITE_SEPOLIA_RPC_URL=your_sepolia_rpc_url
 ```
 
@@ -53,9 +52,6 @@ VITE_SEPOLIA_RPC_URL=your_sepolia_rpc_url
 ```bash
 # Deploy GM Contract
 npx hardhat run scripts/deploy-contract.js --network sepolia
-
-# Deploy Lucky Spin Contract
-npx hardhat run scripts/deploy-lucky-spin.js --network sepolia
 ```
 
 ## 📝 Code Style
@@ -69,12 +65,11 @@ npx hardhat run scripts/deploy-lucky-spin.js --network sepolia
 
 ```typescript
 /**
- * Encrypts user input using Zama FHE SDK
- * @param value - The value to encrypt
- * @param type - The FHE data type
- * @returns Encrypted input with attestation
+ * Encrypts GM message using Zama FHE SDK
+ * @param message - The GM message to encrypt
+ * @returns Encrypted message with attestation
  */
-async function encryptUserInput(value: number, type: string) {
+async function encryptGMMessage(message: string) {
   // Implementation
 }
 ```
@@ -104,25 +99,24 @@ function submitEncryptedGM(
 
 ### Data Types
 
-- Use `euint8` for small values (0-255)
-- Use `euint32` for larger values (0-4,294,967,295)
-- Use `externalEuint8/32` for encrypted inputs from frontend
+- Use `euint32` for GM messages and timestamps
+- Use `externalEuint32` for encrypted inputs from frontend
 
 ### Operations
 
 - Always use FHE operations on encrypted data
 - Never mix plain and encrypted operations
 - Use `FHE.allow()` to grant decryption permissions
-- Use `FHE.makePubliclyDecryptable()` for public disclosure
+- Use `FHE.allowThis()` for contract decryption
 
 ### Security
 
 ```solidity
 // ✅ Correct - Encrypted operations
-euint8 result = FHE.add(encryptedValue1, encryptedValue2);
+euint32 encryptedMessage = FHE.fromExternal(encryptedInput, attestation);
 
 // ❌ Wrong - Mixing plain and encrypted
-uint8 result = FHE.add(plainValue, encryptedValue);
+string message = FHE.fromExternal(encryptedInput, attestation);
 ```
 
 ## 🧪 Testing
@@ -147,19 +141,18 @@ npm run test:e2e
 npx hardhat test
 
 # Run specific test file
-npx hardhat test test/LuckySpinFHE.test.js
+npx hardhat test test/GMContract.test.js
 ```
 
 ### FHE Testing
 
 ```javascript
-// Test encrypted operations
-describe('FHE Operations', () => {
-  it('should add encrypted values correctly', async () => {
-    const encrypted1 = await sdk.encrypt(5, 'euint8');
-    const encrypted2 = await sdk.encrypt(3, 'euint8');
-    const result = await contract.addEncrypted(encrypted1, encrypted2);
-    expect(result).to.equal(8);
+// Test encrypted GM submission
+describe('FHE GM Operations', () => {
+  it('should submit encrypted GM correctly', async () => {
+    const encryptedMessage = await sdk.encrypt("GM!", 'euint32');
+    const result = await contract.submitEncryptedGM(encryptedMessage, attestation);
+    expect(result).to.be.true;
   });
 });
 ```
@@ -189,11 +182,11 @@ describe('FHE Operations', () => {
 ### Example PR Title
 
 ```
-feat: Add encrypted leaderboard sorting
+feat: Add encrypted GM streak tracking
 
-- Implements FHE-based score comparison
-- Adds new encrypted sorting algorithm
-- Updates frontend to handle encrypted rankings
+- Implements FHE-based streak calculation
+- Adds new encrypted streak algorithm
+- Updates frontend to handle encrypted streaks
 ```
 
 ## 🐛 Reporting Issues
@@ -222,7 +215,6 @@ Use the GitHub issue template and include:
 GM-Project/
 ├── contracts/           # Smart contracts
 │   ├── GMContract.sol
-│   ├── LuckySpinFHE.sol
 │   └── ZamaConfig.sol
 ├── src/
 │   ├── components/      # React components
@@ -268,13 +260,13 @@ GM-Project/
 ### High Priority
 
 - **FHE Optimization**: Improve encrypted operation efficiency
-- **UI/UX**: Enhance user experience for encrypted interactions
+- **UI/UX**: Enhance user experience for encrypted GM submission
 - **Testing**: Add comprehensive FHE testing
 - **Documentation**: Improve FHE concept explanations
 
 ### Medium Priority
 
-- **New Features**: Additional privacy-preserving features
+- **New Features**: Additional privacy-preserving GM features
 - **Performance**: Optimize frontend and contract performance
 - **Accessibility**: Improve accessibility for all users
 - **Internationalization**: Add multi-language support
